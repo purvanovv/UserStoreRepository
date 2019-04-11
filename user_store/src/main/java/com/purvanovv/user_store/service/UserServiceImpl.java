@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.purvanovv.user_store.exception.DatabaseException;
 import com.purvanovv.user_store.model.User;
 import com.purvanovv.user_store.repository.UserRepository;
 
@@ -15,7 +16,7 @@ public class UserServiceImpl implements UserService {
 	UserRepository userRepository;
 
 	@Override
-	public List<User> getAllUsers() {
+	public List<User> getAllUsers() throws DatabaseException {
 		return userRepository.getAllUsers();
 	}
 

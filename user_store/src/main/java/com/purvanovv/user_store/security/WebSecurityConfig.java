@@ -8,13 +8,14 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
-	JwtProvider jwtProvider;
+	private JwtProvider jwtProvider;
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -24,12 +25,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		http.authorizeRequests().antMatchers("/authorize/signin").permitAll().anyRequest().authenticated();
 
-		http.apply(new JwtTokenFilterConfigurer(jwtProvider));
+		http.addFilterBefore(new JwtFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
 	}
 
-	@Bean(name = "myAuthenticationManager")
 	@Override
+	@Bean
 	public AuthenticationManager authenticationManagerBean() throws Exception {
 		return super.authenticationManagerBean();
 	}

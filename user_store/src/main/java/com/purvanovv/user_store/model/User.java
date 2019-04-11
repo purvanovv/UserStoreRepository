@@ -1,8 +1,12 @@
 package com.purvanovv.user_store.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-public class User {
+public class User implements UserDetails{
 	private Integer id;
 
 	private String firstName;
@@ -13,8 +17,26 @@ public class User {
 
 	private String password;
 
-	private Role role;
+	private List<UserAuthority> authorities;
 
+	public User() {
+		this.authorities = new ArrayList<>();
+	}
+	
+	public User(Integer id, String username, String firstName, String lastName,
+			List<UserAuthority> authorities) {
+		super();
+		this.id = id;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.username = username;
+		this.authorities = authorities;
+	}
+
+	public void setAuthorities(List<UserAuthority> authorities) {
+		this.authorities = authorities;
+	}
+	
 	public Integer getId() {
 		return id;
 	}
@@ -55,18 +77,43 @@ public class User {
 		this.password = password;
 	}
 
-	public Role getRole() {
-		return role;
+	public List<UserAuthority> getAuthorities() {
+		return authorities;
 	}
 
-	public void setRole(Role role) {
-		this.role = role;
+	public void addAuthorities(List<UserAuthority> authorities) {
+		this.authorities = authorities;
+
+	}
+
+	public void addRole(UserAuthority role) {
+		this.authorities.add(role);
 	}
 
 	public boolean checkPassword(String password) {
 		// BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		// return encoder.matches(password, getPassword());
 		return getPassword().equals(password);
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return false;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return false;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return false;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return false;
 	}
 
 }

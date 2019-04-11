@@ -3,8 +3,8 @@ package com.purvanovv.user_store.security;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -15,9 +15,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import com.purvanovv.user_store.exception.JwtAuthorzieException;
-import com.purvanovv.user_store.model.CustomUserDetails;
-import com.purvanovv.user_store.model.Role;
 import com.purvanovv.user_store.model.User;
+import com.purvanovv.user_store.model.UserAuthority;
+import com.purvanovv.user_store.model.UserTokenDTO;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -37,9 +37,12 @@ public class JwtProvider {
 		secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
 	}
 
-	public String createToken(User user) {
+	public UserTokenDTO createToken(User user) {
+		UserTokenDTO userToken = new UserTokenDTO();
+		userToken.setUser(user);
+		
 		Claims claims = Jwts.claims().setSubject(user.getUsername());
-		claims.put("role", user.getRole());
+		claims.put("authorities", user.getAuthorities());
 		claims.put("firstName", user.getFirstName());
 		claims.put("lastName", user.getLastName());
 		claims.put("username", user.getUsername());
@@ -47,8 +50,10 @@ public class JwtProvider {
 		Date now = new Date();
 		Date validity = new Date(now.getTime() + validityInMilliseconds);
 
-		return Jwts.builder().setClaims(claims).setIssuedAt(now).setExpiration(validity).setId(user.getId().toString())
+		String token = Jwts.builder().setClaims(claims).setIssuedAt(now).setExpiration(validity).setId(user.getId().toString())
 				.signWith(SignatureAlgorithm.HS256, secretKey).compact();
+		userToken.setToken(token);
+		return userToken;
 	}
 
 	public boolean validateToken(String token) throws JwtAuthorzieException {
@@ -62,16 +67,17 @@ public class JwtProvider {
 
 	public Authentication getAuthentication(String token) {
 		Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
-		Role role = new Role((int) ((Map) claims.get("role")).get("id"),
-				(String) ((Map) claims.get("role")).get("name"));
+		List<HashMap<String, String>> authoritiesMap = (List<HashMap<String, String>>) claims.get("authorities");
+		List<UserAuthority> authorities = new ArrayList<>();
+		for (HashMap<String, String> pair : authoritiesMap) {
+			UserAuthority authority = new UserAuthority(pair.get("authority"));
+			authorities.add(authority);
+		}
 
-		List<Role> roles = new ArrayList<>();
-		roles.add(role);
+		User user = new User((Integer) claims.get("userId"), (String) claims.get("username"),
+				(String) claims.get("firstName"), (String) claims.get("lastName"), authorities);
 
-		CustomUserDetails timexisUserDetails = new CustomUserDetails((String) claims.get("username"),
-				(String) claims.get("firstName"), (String) claims.get("lastName"), roles);
-
-		return new UsernamePasswordAuthenticationToken(timexisUserDetails, "", timexisUserDetails.getAuthorities());
+		return new UsernamePasswordAuthenticationToken(user, "", user.getAuthorities());
 	}
 
 	public String resolveToken(HttpServletRequest req) {

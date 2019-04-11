@@ -8,9 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.purvanovv.user_store.exception.DatabaseException;
 import com.purvanovv.user_store.model.User;
 import com.purvanovv.user_store.service.UserService;
 
@@ -24,8 +26,9 @@ public class UserController {
 	@Autowired
 	UserService userService;
 
+	@PreAuthorize("hasAuthority('ADMIN')")
 	@RequestMapping("/getAllUsers")
-	public ResponseEntity<List<User>> getAllLogs() {
+	public ResponseEntity<List<User>> getAllLogs() throws DatabaseException {
 		long opStart = System.currentTimeMillis();
 		ResponseEntity<List<User>> response = new ResponseEntity<List<User>>(userService.getAllUsers(), HttpStatus.OK);
 		performanceLog.info("Call to UserService for getAllUsers {} ms", System.currentTimeMillis() - opStart);

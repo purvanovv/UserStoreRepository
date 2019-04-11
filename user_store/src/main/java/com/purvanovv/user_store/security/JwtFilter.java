@@ -9,15 +9,18 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.purvanovv.user_store.exception.JwtAuthorzieException;
 
 public class JwtFilter extends GenericFilter {
+
 	private JwtProvider jwtProvider;
 
-	public JwtFilter(JwtProvider jwtTokenProvider) {
+	public JwtFilter(JwtProvider jwtProvider) {
 		this.jwtProvider = jwtProvider;
 	}
 
@@ -25,15 +28,18 @@ public class JwtFilter extends GenericFilter {
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain filterChain)
 			throws IOException, ServletException {
 
-		String token = jwtProvider.resolveToken((HttpServletRequest) req);
-		try {
-			if (token != null && jwtProvider.validateToken(token)) {
-				Authentication auth = jwtProvider.getAuthentication(token);
-				SecurityContextHolder.getContext().setAuthentication(auth);
+		String requestUrl = ((HttpServletRequest) req).getRequestURI();
+		if (!requestUrl.equals("/authorize/signin")) {
+			try {
+				String token = jwtProvider.resolveToken((HttpServletRequest) req);
+				if (token != null && jwtProvider.validateToken(token)) {
+					Authentication auth = jwtProvider.getAuthentication(token);
+					SecurityContextHolder.getContext().setAuthentication(auth);
+				}
+			} catch (JwtAuthorzieException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (JwtAuthorzieException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		filterChain.doFilter(req, res);
 	}
