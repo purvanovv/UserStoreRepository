@@ -16,10 +16,14 @@ import com.purvanovv.user_store.exception.DatabaseException;
 import com.purvanovv.user_store.model.User;
 import com.purvanovv.user_store.service.UserService;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
+@Api(tags = "UsersController")
 @RequestMapping("/users")
 public class UserController {
-	
+
 	private final static Logger performanceLog = LoggerFactory
 			.getLogger("performance." + MethodHandles.lookup().lookupClass().getCanonicalName());
 
@@ -28,6 +32,7 @@ public class UserController {
 
 	@PreAuthorize("hasAuthority('ADMIN')")
 	@RequestMapping("/getAllUsers")
+	@ApiOperation(value = "getAllLogs", notes = "getting all logs")
 	public ResponseEntity<List<User>> getAllLogs() throws DatabaseException {
 		long opStart = System.currentTimeMillis();
 		ResponseEntity<List<User>> response = new ResponseEntity<List<User>>(userService.getAllUsers(), HttpStatus.OK);

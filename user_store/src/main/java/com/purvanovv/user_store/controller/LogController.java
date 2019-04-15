@@ -18,7 +18,11 @@ import com.purvanovv.user_store.model.LogInfo;
 import com.purvanovv.user_store.model.User;
 import com.purvanovv.user_store.service.LogService;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
+@Api(tags = "LogsController")
 @RequestMapping("/log")
 public class LogController {
 
@@ -29,6 +33,7 @@ public class LogController {
 	private LogService logService;
 
 	@PreAuthorize("hasAuthority('ADMIN')")
+	@ApiOperation(value = "getLogs", notes = "getting all logs from file")
 	@RequestMapping(value = "/getLogs", method = RequestMethod.GET)
 	public ResponseEntity<List<LogInfo>> getAllLogs() {
 		long opStart = System.currentTimeMillis();
@@ -39,6 +44,7 @@ public class LogController {
 	}
 
 	@PreAuthorize("hasAuthority('USER')")
+	@ApiOperation(value = "getAllLogsForUser", notes = "getting all logs fom logged user")
 	@RequestMapping(value = "/getAllLogsForUser", method = RequestMethod.GET)
 	public ResponseEntity<List<LogInfo>> getLogsForUser(@AuthenticationPrincipal User user) {
 		long opStart = System.currentTimeMillis();
